@@ -1,0 +1,16 @@
+[Unit]
+Description=PlexDLWeb
+After=network.target plexmediaserver.service
+Requires=plexmediaserver.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=plexdlweb
+WorkingDirectory={PATH}
+ExecStart=/usr/bin/python3 {PATH}/__main__.py
+
+[Install]
+WantedBy=multi-user.target
