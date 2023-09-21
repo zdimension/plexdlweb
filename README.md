@@ -2,7 +2,7 @@
 
 A simple web UI for downloading media from Plex without the Plex Pass.
 
-![image](https://github.com/zdimension/plexdlweb/assets/4533568/268d2bcc-8be3-4288-96f3-02fe26fea0ef)
+![chrome_ZpHRswxRB1](https://github.com/zdimension/plexdlweb/assets/4533568/c085d892-78d6-48ab-8290-55677daaac41)
 
 Uses [Python-PlexAPI](https://github.com/pkkid/python-plexapi) and [NiceGUI](https://github.com/zauberzeug/nicegui).
 
