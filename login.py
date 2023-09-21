@@ -3,6 +3,7 @@ This module uses code from https://github.com/Tautulli/Tautulli for the Plex OAu
 """
 from typing import Optional
 
+import asyncio
 from nicegui import ui, app
 from config import config
 import json
@@ -11,9 +12,9 @@ from plex import check_user_token, check_server_token, get_server_token
 from locales import _
 
 
-def check_login() -> Optional[tuple[str, str]]:
+async def check_login() -> Optional[tuple[str, str]]:
     if (user_token := app.storage.user.get("user_token")) and (server_token := app.storage.user.get("server_token")) \
-            and check_user_token(user_token) and check_server_token(server_token):
+            and all(await asyncio.gather(check_user_token(user_token), check_server_token(server_token))):
         return user_token, server_token
     else:
         return None
@@ -27,8 +28,8 @@ def logout():
 
 
 @ui.page("/login", title=_("login"))
-def page_login():
-    if check_login():
+async def page_login():
+    if await check_login():
         # already logged in, redirect to home
         return RedirectResponse("/")
 
@@ -224,8 +225,8 @@ def page_login():
     async def connect_plex():
         login_btn.text = _("logging_in")
         app.storage.user["user_token"] = await ui.run_javascript("return await getToken();", timeout=120)
-        app.storage.user["server_token"] = get_server_token(app.storage.user["user_token"])
+        app.storage.user["server_token"] = await get_server_token(app.storage.user["user_token"])
         ui.open("/")
 
     with ui.column():
-        login_btn = ui.button(_("login_with_plex"), on_click=lambda: connect_plex())
+        login_btn = ui.button(_("login_with_plex"), on_click=connect_plex)

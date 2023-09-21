@@ -5,6 +5,7 @@ from fastapi.responses import StreamingResponse
 from starlette.background import BackgroundTask
 import httpx
 from config import config
+from common import io_bound
 
 SERVER_ID = "1af7c05328fb1a2bc68ca4eb9ee9c4ac9dd90bca"
 
@@ -37,34 +38,32 @@ async def streaming(path: str) -> StreamingResponse:
     )
 
 
-def get_server():
-    return PlexServer(config.server_url, app.storage.user.get("server_token"))
+async def get_server():
+    return await io_bound(PlexServer, config.server_url, app.storage.user.get("server_token"))
 
 
-def get_self():
-    return MyPlexAccount(token=app.storage.user.get("user_token"))
+async def get_self():
+    return await io_bound(MyPlexAccount, token=app.storage.user.get("user_token"))
 
 
-def get_server_token(user_token: str) -> str:
+async def get_server_token(user_token: str) -> str:
     acc = MyPlexAccount(token=user_token)
-    srv = [r for r in acc.resources() if r.clientIdentifier == config.server_id][0]
+    srv = [r for r in await io_bound(acc.resources) if r.clientIdentifier == config.server_id][0]
     return srv.accessToken
 
 
-def check_user_token(token: str) -> bool:
+async def check_user_token(token: str) -> bool:
     try:
-        acc = MyPlexAccount(token=token)
-        acc.devices()
+        await io_bound(MyPlexAccount, token=token)
         return True
     except Exception as e:
         print(e)
         return False
 
 
-def check_server_token(token: str) -> bool:
+async def check_server_token(token: str) -> bool:
     try:
-        srv = PlexServer(config.server_url, token=token)
-        srv.identity()
+        await io_bound(PlexServer, config.server_url, token=token)
         return True
     except Exception as e:
         print(e)

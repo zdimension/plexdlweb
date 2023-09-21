@@ -1,9 +1,10 @@
 from datetime import timedelta
 
+import asyncio
 import humanize
 from fastapi import Request
 from fastapi.responses import RedirectResponse, FileResponse
-from nicegui import ui, app, globals as ng_globals
+from nicegui import ui, app
 from plexapi.collection import *
 from plexapi.video import *
 from plexapi.media import MediaPart, Media
@@ -13,11 +14,13 @@ from login import check_login, logout
 from plex import get_server, get_self
 from locales import _
 
+from common import io_bound
+
 
 @app.middleware("http")
 async def check_auth(request: Request, call_next):
     # https://github.com/zauberzeug/nicegui/blob/main/examples/authentication/main.py
-    if not check_login():
+    if not await check_login():
         if not request.url.path.startswith("/_nicegui") and request.url.path != "/login":
             app.storage.user['referrer_path'] = request.url.path
             return RedirectResponse('/login')
@@ -45,11 +48,11 @@ async def check_auth(request: Request, call_next):
 del app.user_middleware[-1]  # gzip removes content-length
 
 
-def header():
+async def header():
     """
     Displays thecommon page header
     """
-    user = get_self()
+    user = await get_self()
 
     with ui.row():
         ui.button(_("home"), on_click=lambda: ui.open("/"))
@@ -58,17 +61,17 @@ def header():
 
 
 @app.get("/download/{media}/{index}")
-def download(media: int, index: int):
+async def download(media: int, index: int):
     """
     Downloads the specified media part from Plex
     """
-    part = get_server().fetchItem(media).media[index].parts[0]  # is there ever more than one part per media?
+    part = (await get_server()).fetchItem(media).media[index].parts[0]  # is there ever more than one part per media?
     filename = os.path.basename(part.file)
     return FileResponse(part.file, filename=filename, stat_result=os.stat(part.file))
 
 
 @ui.page("/", title="PlexDLWeb")
-def index():
+async def index():
     ui.add_head_html("""
         <link rel="manifest" href="/plexdlweb.webmanifest">
         <style>
@@ -137,7 +140,7 @@ def index():
             Movie: (
                 _("movie"),
                 "bg-green-300",
-                lambda m: m.title,
+                lambda m: (f"<span style='font-size: 70%'>{m.editionTitle}</span><br>" if m.editionTitle else "") + m.title,
                 lambda m: print(list(m.iterParts()))
             ),
             Show: (
@@ -187,9 +190,9 @@ def index():
             def display_crumb(i, part):
                 kind, color, namer, clicked = kinds[type(part)]
 
-                def handler():
+                async def handler():
                     del query[i:]
-                    clicked(part)
+                    await clicked(part)
 
                 with fake_button_group().on("click", handler).classes(add="cursor-pointer-rec"):
                     fake_button(kind).classes(add=color)
@@ -249,14 +252,22 @@ def index():
 
     last_search = None
 
-    def do_search(query, force=False):
+    server = await get_server()
+
+    async def do_search(query, force=False):
         nonlocal last_search
         previous, last_search = last_search, query
         if not force and query == previous or len(query) < 3:
             return
 
-        results = server.search(query)
-        result_list.refresh([query], results)
+        loading.set_visibility(True)
+        results = await io_bound(server.search, query)
+        async def all_editions(x):
+            if isinstance(x, Movie):
+                return [x, *(await io_bound(x.editions))]
+            return [x]
+        result_list.refresh([query], [item for editions in (await asyncio.gather(*[all_editions(res) for res in results])) for item in editions])
+        loading.set_visibility(False)
 
     debounce = None
 
@@ -266,12 +277,13 @@ def index():
             debounce.deactivate()
         debounce = ui.timer(0.3, lambda: do_search(e.value), once=True)
 
-    server = get_server()
-
-    header()
+    await header()
 
     with ui.column():
         ui.input(label=_("search_verb"), placeholder=_("search_placeholder"), on_change=name_change)
+
+    loading = ui.spinner(size="lg")
+    loading.set_visibility(False)
 
     result_list([], [])
 
