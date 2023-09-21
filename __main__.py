@@ -299,7 +299,7 @@ def manifest():
         "theme_color": "#000",
         "icons": [
             {
-                "src": "https://domino.zdimension.fr/apps/pmp-icon-1.png",
+                "src": "https://app.plex.tv/desktop/static/icon-ipad@2x.png",
                 "sizes": "512x512",
                 "type": "image/png"
             }
