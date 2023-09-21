@@ -47,7 +47,7 @@ async def get_self():
 
 
 async def get_server_token(user_token: str) -> str:
-    acc = MyPlexAccount(token=user_token)
+    acc = await io_bound(MyPlexAccount, token=user_token)
     srv = [r for r in await io_bound(acc.resources) if r.clientIdentifier == config.server_id][0]
     return srv.accessToken
 
