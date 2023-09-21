@@ -159,7 +159,7 @@ async def index():
                 _("episode"),
                 "bg-teal-300",
                 lambda
-                    e: f"<span style='font-size: 70%'>{e.grandparentTitle} - {e.parentTitle} - Épisode {e.index}</span><br>{e.title}",
+                    e: f"<span style='font-size: 70%'>{e.grandparentTitle} - {e.parentTitle} - {_('episode')} {e.index}</span><br>{e.title}",
                 lambda e: refresh(merge(query, [e.show(), sea := e.season()]), sea.episodes())
             ),
             Collection: (
