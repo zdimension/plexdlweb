@@ -6,6 +6,7 @@ from fastapi.responses import RedirectResponse, FileResponse
 from nicegui import ui, app, globals as ng_globals
 from plexapi.collection import *
 from plexapi.video import *
+from plexapi.media import MediaPart, Media
 
 from config import config
 from login import check_login, logout
@@ -56,13 +57,12 @@ def header():
         ui.label(_("user", user=user.email))
 
 
-@app.get("/download/{key}")
-def download(key: int):
+@app.get("/download/{media}/{index}")
+def download(media: int, index: int):
     """
-    Downloads the specified media from Plex
+    Downloads the specified media part from Plex
     """
-    p = get_server().fetchItem(key)
-    part = next(p.iterParts())  # TODO: handle multi versions
+    part = get_server().fetchItem(media).media[index].parts[0]  # is there ever more than one part per media?
     filename = os.path.basename(part.file)
     return FileResponse(part.file, filename=filename, stat_result=os.stat(part.file))
 
@@ -98,6 +98,15 @@ def index():
 
     def fake_button_label(text):
         return ui.label(text).classes(add="m-3 q-btn q-btn--flat p-0").style("min-height: 0")
+    
+    def duration_to_string(ms: int):
+        dur = timedelta(milliseconds=ms)
+        if dur > timedelta(hours=1):
+            return f"{dur.seconds // 3600}h{(dur.seconds // 60) % 60}m"
+        elif dur > timedelta(minutes=5):
+            return f"{dur.seconds // 60}m"
+        else:
+            return f"{dur.seconds // 60}m{dur.seconds % 60}s"
 
     def merge(query, new):
         """
@@ -198,20 +207,28 @@ def index():
 
                 def dl_button():
                     if isinstance(r, Playable):
-                        part = next(r.iterParts())
-                        dur = timedelta(milliseconds=part.duration)
-                        if dur > timedelta(hours=1):
-                            dur = f"{dur.seconds // 3600}h{(dur.seconds // 60) % 60}m"
-                        elif dur > timedelta(minutes=5):
-                            dur = f"{dur.seconds // 60}m"
+                        if len(r.media) > 1:
+                            def handler():
+                                def part_line(i, media: Media):
+                                    part = media.parts[0]
+                                    fake_button_label(duration_to_string(part.duration)).style("text-transform: none").classes(add="text-right")
+                                    fake_button_label(f"{media.width}x{media.height}").style("text-transform: none")
+                                    fake_button_label(humanize.naturalsize(part.size)).classes(add="text-right")
+                                    ui.button(icon="download").props("flat").on("click.stop", lambda: ui.download(f"/download/{r.ratingKey}/{i}")).classes(add="px-3")
+                                with ui.dialog() as dialog, ui.card():
+                                    with ui.grid(columns=4):
+                                        for i, media in enumerate(r.media):
+                                            part_line(i, media)
+                                dialog.open()
                         else:
-                            dur = f"{dur.seconds // 60}m{dur.seconds % 60}s"
-                        fake_button_label(dur).classes(add="ml-auto self-center").style(
+                            def handler():
+                                ui.download(f"/download/{r.ratingKey}/0")
+                        part = r.media[0].parts[0]
+                        fake_button_label(duration_to_string(part.duration)).classes(add="ml-auto self-center").style(
                             "text-transform: none; font-size: 90%")
                         fake_button_label(humanize.naturalsize(part.size)).classes(add="mx-0 self-center").style(
                             "font-size: 90%")
-                        ui.button(icon="download").props("flat").on("click.stop", lambda: ui.download(
-                            f"/download/{r.ratingKey}")).classes(add="px-3")
+                        ui.button(icon="download").props("flat").on("click.stop", handler).classes(add="px-3")
 
                 if result_as_list:
                     with fake_button_group().on("click", lambda: clicked(r)).classes(add="w-full cursor-pointer-rec"):

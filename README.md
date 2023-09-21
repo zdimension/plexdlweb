@@ -17,7 +17,7 @@ Uses [Python-PlexAPI](https://github.com/pkkid/python-plexapi) and [NiceGUI](htt
 - [x] Search across an entire Plex server
 - [x] Download movies and episodes
 - [x] Browse collections, shows, and seasons
-- [ ] Choose between multiple versions of a media item (planned)
+- [x] Choose between multiple versions of a media item
 - [ ] Provide a torrent download in addition to the direct download (planned)
   - This will probably use an embedded torrent client, and generate a unique torrent file valid for 12 or 24 hours. Useful if your connection is too unstable to download the file through HTTP.
 - [ ] Auto-update through Git, like Tautulli (planned)

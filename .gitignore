@@ -5,3 +5,4 @@
 .nicegui
 config.json
 __pycache__
+.gitconfig
