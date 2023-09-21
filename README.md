@@ -63,6 +63,10 @@ service plexdlweb start
 systemctl enable plexdlweb
 ```
 
+## Updating
+
+As mentioned, an update system is planned. In the meantime, just `git pull` and restart the service.
+
 ## Rationale
 
 Plex is an amazing piece of software. Time isn't free, and Plex Inc. needs money. I paid €120 for the Plex Pass so my friends and family can use my server at its full potential (hardware transcoding, credits skipping, etc).
