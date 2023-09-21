@@ -1,0 +1,7 @@
+.cache
+.config
+.idea
+.local
+.nicegui
+config.json
+__pycache__

@@ -1,0 +1,22 @@
+{
+  "home": "Accueil",
+  "login": "Connexion",
+  "logging_in": "Connexion...",
+  "login_with_plex": "Connexion avec Plex",
+  "redirecting_to_plex": "Redirection vers Plex...",
+  "logout": "Déconnexion",
+  "user": "Utilisateur : {user}",
+  "no_results": "Aucun résultat",
+  "movie": "Film",
+  "show": "Série",
+  "season": "Saison",
+  "episode": "Épisode",
+  "collection": "Collection",
+  "search_noun": "Recherche",
+  "display": "Affichage :",
+  "history": "Historique :",
+  "search_verb": "Rechercher",
+  "search_placeholder": "Retour vers le Futur",
+  "grid": "Grille",
+  "list": "Liste"
+}

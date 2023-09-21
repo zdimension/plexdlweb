@@ -1,0 +1,22 @@
+{
+  "home": "Home",
+  "login": "Login",
+  "logging_in": "Logging in...",
+  "login_with_plex": "Login with Plex",
+  "redirecting_to_plex": "Redirecting to the Plex login page...",
+  "logout": "Logout",
+  "user": "User: {user}",
+  "no_results": "No results",
+  "movie": "Movie",
+  "show": "Show",
+  "season": "Season",
+  "episode": "Episode",
+  "collection": "Collection",
+  "search_noun": "Search",
+  "display": "Display:",
+  "history": "History:",
+  "search_verb": "Search",
+  "search_placeholder": "Back to the Future",
+  "grid": "Grid",
+  "list": "List"
+}
