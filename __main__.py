@@ -54,9 +54,13 @@ async def header():
     """
     user = await get_self()
 
+    def logout_handler():
+        logout()
+        ui.open("/login")
+
     with ui.row():
         ui.button(_("home"), on_click=lambda: ui.open("/"))
-        ui.button(_("logout"), on_click=logout)
+        ui.button(_("logout"), on_click=logout_handler)
         ui.label(_("user", user=user.email))
 
 
