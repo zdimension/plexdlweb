@@ -1,0 +1,22 @@
+{
+  "home": "Inicio",
+  "login": "Iniciar sesión",
+  "logging_in": "Iniciando sesión...",
+  "login_with_plex": "Iniciar sesión con Plex",
+  "redirecting_to_plex": "Redirigiendo a la página de inicio de sesión de Plex...",
+  "logout": "Cerrar sesión",
+  "user": "Usuario: {user}",
+  "no_results": "No hay resultados",
+  "movie": "Película",
+  "show": "Serie",
+  "season": "Temporada",
+  "episode": "Episodio",
+  "collection": "Colección",
+  "search_noun": "Busqueda",
+  "display": "Mostrar:",
+  "history": "Historial:",
+  "search_verb": "Buscar",
+  "search_placeholder": "Regreso al futuro",
+  "grid": "Cuadricula",
+  "list": "Lista"
+}
