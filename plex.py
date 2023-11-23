@@ -7,15 +7,13 @@ import httpx
 from config import config
 from common import io_bound
 
-SERVER_ID = "1af7c05328fb1a2bc68ca4eb9ee9c4ac9dd90bca"
 
-
-@app.on_event("startup")
+@app.on_startup
 async def startup():
     app.state.httpx_client = httpx.AsyncClient()
 
 
-@app.on_event("shutdown")
+@app.on_shutdown
 async def shutdown():
     await app.state.httpx_client.aclose()
 

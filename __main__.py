@@ -17,6 +17,12 @@ from locales import _
 from common import io_bound
 
 
+def apartial(func, *args, **kwargs):
+    async def handler():
+        return await func(*args, **kwargs)
+    return handler
+
+
 @app.middleware("http")
 async def check_auth(request: Request, call_next):
     # https://github.com/zauberzeug/nicegui/blob/main/examples/authentication/main.py
@@ -279,7 +285,7 @@ async def index():
         nonlocal debounce
         if debounce is not None:
             debounce.deactivate()
-        debounce = ui.timer(0.3, lambda: do_search(e.value), once=True)
+        debounce = ui.timer(0.3, apartial(do_search, e.value), once=True)
 
     await header()
 
