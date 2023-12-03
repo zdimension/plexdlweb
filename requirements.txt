@@ -2,4 +2,5 @@ PlexAPI>=4.15
 dataclasses-json
 nicegui>=1.4.3
 httpx
+httpcore>=1.0.0
 humanize
