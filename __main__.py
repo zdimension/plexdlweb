@@ -62,10 +62,10 @@ async def header():
 
     def logout_handler():
         logout()
-        ui.open("/login")
+        ui.navigate.to("/login")
 
     with ui.row():
-        ui.button(_("home"), on_click=lambda: ui.open("/"))
+        ui.button(_("home"), on_click=lambda: ui.navigate.to("/"))
         ui.button(_("logout"), on_click=logout_handler)
         ui.label(_("user", user=user.email))
 
@@ -250,11 +250,11 @@ async def index():
                         dl_button()
                 else:
                     with ui.card().tight().on("click", lambda: clicked(r)).classes(add="cursor-pointer-rec"):
-                        with ui.card_section().classes(add=color).classes(add="p-0 row"):
+                        with ui.card_section().classes(add=color).classes(add="p-0 row w-full"):
                             fake_button_label(kind)
                             dl_button()
                         ui.image("/plex" + r.thumb)
-                        with ui.card_section():
+                        with ui.card_section().classes(add="mt-auto"):
                             ui.html("<span style='font-size: 120%'>" + namer(r) + "</span>")
 
             for r in results:

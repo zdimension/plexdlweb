@@ -226,7 +226,7 @@ async def page_login():
         login_btn.text = _("logging_in")
         app.storage.user["user_token"] = await ui.run_javascript("return await getToken();", timeout=120)
         app.storage.user["server_token"] = await get_server_token(app.storage.user["user_token"])
-        ui.open("/")
+        ui.navigate.to("/")
 
     with ui.column():
         login_btn = ui.button(_("login_with_plex"), on_click=connect_plex)

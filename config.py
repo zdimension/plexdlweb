@@ -28,8 +28,16 @@ if os.path.exists("config.json"):
         raise
 else:
     config = Config()
-    print("No config.json found, creating it -- please fill it with your server details")
-    save_config()
-    exit()
+    if os.getenv("IS_DOCKER") == "1":
+        config.host = "0.0.0.0"
+    else:
+        print("No config.json found, creating it -- please fill it with your server details")
+        print("You can also set the environment variables: PDW_SERVER_URL, PDW_SERVER_ID, PDW_LANG, ...")
+        save_config()
+        exit()
+
+for key in config.to_dict().keys():
+    if val := os.getenv(f"PDW_{key.upper()}"):
+        setattr(config, key, val)
 
 save_config()

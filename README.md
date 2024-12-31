@@ -63,6 +63,21 @@ service plexdlweb start
 systemctl enable plexdlweb
 ```
 
+### Dockerfile
+
+```bash
+git clone https://github.com/zdimension/plexdlweb
+cd plexdlweb
+docker build -t plexdlweb .
+docker run -d -p 8766:8766 \
+  -e PDW_SERVER_URL=http://plex.johndoe.com:32400 \
+  -e PDW_SERVER_ID=abcdef123456abcdef123456abcdef123456abcd \
+  -e PDW_LANG=en \
+  -v /thing/movies:/thing/movies \
+  -v /thing/tvshows:/thing/tvshows \
+  plexdlweb
+```
+
 ## Updating
 
 As mentioned, an update system is planned. In the meantime, just `git pull` and restart the service.
