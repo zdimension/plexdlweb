@@ -24,13 +24,15 @@ Uses [Python-PlexAPI](https://github.com/pkkid/python-plexapi) and [NiceGUI](htt
 
 ## Basic setup
 
-You will need your server address (e.g. `http://plex.johndoe.com:32400` or `http://127.0.0.1:32400`) and ID. You can get the ID by opening `https://plex.johndoe.com/identity` (replace with your URL). You'll get something like this:
+You will need your server address (e.g. `http://plex.johndoe.com:32400` or `http://127.0.0.1:32400`) and ID. You can get the ID by opening `https://plex.johndoe.com/identity` (replace with your URL). It should be a long sequence of digits and a-f letters, with no dashes. You'll get something like this:
 
 ```xml
 <MediaContainer size="0" claimed="1" machineIdentifier="abcdef123456abcdef123456abcdef123456abcd" version="1.32.5.7516-8f4248874"> </MediaContainer>
 ```
 
 The ID is the `abcdef123456abcdef123456abcdef123456abcd`.
+
+You can also find it in your `Preferences.xml` file under the name `ProcessedMachineIdentifier`. 
 
 ### Standalone
 
