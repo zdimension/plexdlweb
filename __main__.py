@@ -10,7 +10,6 @@ from nicegui import ui, app
 from plexapi.collection import *
 from plexapi.video import *
 from plexapi.media import MediaPart, Media
-from starlette.middleware.gzip import GZipMiddleware
 
 from config import config
 from login import check_login, logout
@@ -77,9 +76,6 @@ async def check_auth(request: Request, call_next):
 #                 await responder(scope, receive, send)
 #                 return
 #         await self.app(scope, receive, send)
-
-app.user_middleware = [m for m in app.user_middleware if m.cls is not GZipMiddleware]  # gzip removes content-length
-
 
 async def header():
     """
@@ -369,4 +365,4 @@ def sw():
     """
 
 
-ui.run(host=config.host, port=config.port, show=False, storage_secret=config.secret)
+ui.run(host=config.host, port=config.port, show=False, storage_secret=config.secret, gzip_middleware_factory=None)
