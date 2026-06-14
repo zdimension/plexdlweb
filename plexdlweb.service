@@ -10,7 +10,7 @@ Restart=always
 RestartSec=1
 User=plexdlweb
 WorkingDirectory={PATH}
-ExecStart=/usr/bin/python3 {PATH}/__main__.py
+ExecStart={PATH}/.venv/bin/python {PATH}/__main__.py
 
 [Install]
 WantedBy=multi-user.target

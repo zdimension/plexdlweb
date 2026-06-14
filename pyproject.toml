@@ -1,0 +1,17 @@
+[project]
+name = "plexdlweb"
+version = "0.1.0"
+description = "A simple web UI for downloading media from Plex without the Plex Pass."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "dataclasses-json",
+    "humanize",
+    "httpcore>=1.0.0",
+    "httpx",
+    "nicegui>=2.9.0",
+    "plexapi>=4.15",
+]
+
+[tool.uv]
+package = false

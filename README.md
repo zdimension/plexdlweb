@@ -9,7 +9,8 @@ Uses [Python-PlexAPI](https://github.com/pkkid/python-plexapi) and [NiceGUI](htt
 ## Requirements
 
 - Should work on any Linux (tested on Debian 11), may work on Windows
-- Python 3.9+
+- Python 3.14
+- [uv](https://docs.astral.sh/uv/)
 
 ## Features
 
@@ -39,8 +40,8 @@ You can also find it in your `Preferences.xml` file under the name `ProcessedMac
 ```bash
 git clone https://github.com/zdimension/plexdlweb
 cd plexdlweb
-pip3 install -r requirements.txt
-python3 __main__.py  # will generate a config.json file, edit it and start again
+uv sync
+uv run python __main__.py  # will generate a config.json file, edit it and start again
 ```
 
 ### Systemd service
@@ -53,9 +54,9 @@ useradd -d $(pwd) plexdlweb
 git clone https://github.com/zdimension/plexdlweb .
 chown -R plexdlweb .
 
-sudo -u plexdlweb sh -c "pip3 install -r requirements.txt && python3 __main__.py"
+sudo -u plexdlweb sh -c "uv sync && uv run python __main__.py"
 nano config.json  # edit config here
-sudo -u plexdlweb python3 __main__.py  # make sure it works before setting up the service
+sudo -u plexdlweb uv run python __main__.py  # make sure it works before setting up the service
 
 sed -i "s%{PATH}%$(pwd)%g" plexdlweb.service
 chown root plexdlweb.service
@@ -89,7 +90,7 @@ docker build -t plexdlweb .
 
 ## Updating
 
-As mentioned, an update system is planned. In the meantime, just `git pull` and restart the service.
+As mentioned, an update system is planned. In the meantime, just `git pull`, run `uv sync --frozen`, and restart the service.
 
 ## Troubleshooting large downloads
 

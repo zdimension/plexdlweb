@@ -1,11 +1,12 @@
+.git
 .cache
 .config
 .idea
 .local
 .nicegui
-config.json
-__pycache__
-.gitconfig
 .uv-cache
 .uv-python
 .venv
+__pycache__
+config.json
+.gitconfig
