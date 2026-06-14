@@ -17,13 +17,15 @@ async def check_login() -> Optional[tuple[str, str]]:
             and all(await asyncio.gather(check_user_token(user_token), check_server_token(server_token))):
         return user_token, server_token
     else:
+        app.storage.user.pop("user_token", None)
+        app.storage.user.pop("server_token", None)
         return None
 
 
 @ui.page("/logout", title=_("logout"))
 def logout():
-    app.storage.user.pop("user_token")
-    app.storage.user.pop("server_token")
+    app.storage.user.pop("user_token", None)
+    app.storage.user.pop("server_token", None)
     return RedirectResponse("/login")
 
 
@@ -62,7 +64,14 @@ async def page_login():
                     type: 'POST',
                     headers: HEADERS,
                     success: function(data) {
-                        deferred.resolve({pin: data.id, code: data.code});
+                        const pin = plexResponseValue(data, 'id');
+                        const code = plexResponseValue(data, 'code');
+                        if (!pin || !code) {
+                            closePlexOAuthWindow();
+                            deferred.reject();
+                            return;
+                        }
+                        deferred.resolve({pin: pin, code: code});
                     },
                     error: function() {
                         closePlexOAuthWindow();
@@ -71,6 +80,20 @@ async def page_login():
                 });
                 return deferred;
             };
+
+            function plexResponseValue(data, key) {
+                if (data && data[key]) {
+                    return data[key];
+                }
+                if (data && data.documentElement) {
+                    return data.documentElement.getAttribute(key);
+                }
+                if (data && typeof data === 'string') {
+                    const parsed = new DOMParser().parseFromString(data, 'application/xml');
+                    return parsed.documentElement ? parsed.documentElement.getAttribute(key) : null;
+                }
+                return null;
+            }
 
             let plex_oauth_window = null;
 
@@ -179,10 +202,11 @@ async def page_login():
                             type: 'GET',
                             headers: HEADERS,
                             success: function (data) {
-                                if (data.authToken){
+                                const authToken = plexResponseValue(data, 'authToken') || plexResponseValue(data, 'auth_token');
+                                if (authToken){
                                     closePlexOAuthWindow();
                                     if (typeof success === "function") {
-                                        success(data.authToken)
+                                        success(authToken)
                                     }
                                 }
                             },
@@ -224,8 +248,22 @@ async def page_login():
 
     async def connect_plex():
         login_btn.text = _("logging_in")
-        app.storage.user["user_token"] = await ui.run_javascript("return await getToken();", timeout=120)
-        app.storage.user["server_token"] = await get_server_token(app.storage.user["user_token"])
+        try:
+            user_token = await ui.run_javascript("return await getToken();", timeout=120)
+            if not isinstance(user_token, str) or not user_token.strip():
+                raise ValueError("Plex OAuth did not return an auth token")
+            user_token = user_token.strip()
+            server_token = await get_server_token(user_token)
+        except Exception as e:
+            app.storage.user.pop("user_token", None)
+            app.storage.user.pop("server_token", None)
+            login_btn.text = _("login_with_plex")
+            print(e)
+            ui.notify(str(e), color="negative")
+            return
+
+        app.storage.user["user_token"] = user_token
+        app.storage.user["server_token"] = server_token
         ui.navigate.to("/")
 
     with ui.column():
