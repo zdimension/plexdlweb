@@ -91,6 +91,20 @@ docker build -t plexdlweb .
 
 As mentioned, an update system is planned. In the meantime, just `git pull` and restart the service.
 
+## Troubleshooting large downloads
+
+If large downloads start quickly and then stall at `0 B/s` after a few gigabytes, check any reverse proxy in front of PlexDLWeb. Large media responses should not be buffered or transformed by the proxy.
+
+For nginx, configure the PlexDLWeb location with:
+
+```nginx
+proxy_buffering off;
+proxy_request_buffering off;
+gzip off;
+```
+
+PlexDLWeb also sends `X-Accel-Buffering: no` and `Cache-Control: private, no-transform` on download responses, but proxy settings may still need to allow streaming large files directly to the client.
+
 ## Rationale
 
 Plex is an amazing piece of software. Time isn't free, and Plex Inc. needs money. I paid €120 for the Plex Pass so my friends and family can use my server at its full potential (hardware transcoding, credits skipping, etc).

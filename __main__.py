@@ -1,6 +1,8 @@
 from datetime import timedelta
 
 import asyncio
+import logging
+import os
 import humanize
 from fastapi import Request
 from fastapi.responses import RedirectResponse, FileResponse
@@ -15,6 +17,30 @@ from plex import get_server, get_self
 from locales import _
 
 from common import io_bound
+
+
+logger = logging.getLogger("plexdlweb.download")
+
+
+class DownloadFileResponse(FileResponse):
+    # Starlette's default is 64 KiB. Larger chunks reduce per-chunk overhead for
+    # multi-gigabyte video downloads while preserving Range support.
+    chunk_size = 1024 * 1024
+
+    async def __call__(self, scope, receive, send) -> None:
+        try:
+            await super().__call__(scope, receive, send)
+        except Exception:
+            logger.exception("Download failed while streaming %s", self.path)
+            raise
+
+
+DOWNLOAD_HEADERS = {
+    # Prevent common reverse proxies from buffering large responses to disk.
+    "X-Accel-Buffering": "no",
+    # Tell intermediaries not to compress or otherwise rewrite video downloads.
+    "Cache-Control": "private, no-transform",
+}
 
 
 def apartial(func, *args, **kwargs):
@@ -70,14 +96,30 @@ async def header():
         ui.label(_("user", user=user.email))
 
 
-@app.get("/download/{media}/{index}")
-async def download(media: int, index: int):
+@app.api_route("/download/{media}/{index}", methods=["GET", "HEAD"])
+async def download(request: Request, media: int, index: int):
     """
     Downloads the specified media part from Plex
     """
-    part = (await get_server()).fetchItem(media).media[index].parts[0]  # is there ever more than one part per media?
+    server = await get_server()
+    item = await io_bound(server.fetchItem, media)
+    part = item.media[index].parts[0]  # is there ever more than one part per media?
     filename = os.path.basename(part.file)
-    return FileResponse(part.file, filename=filename, stat_result=os.stat(part.file))
+    stat_result = os.stat(part.file)
+    logger.info(
+        "Starting download media=%s index=%s filename=%r size=%s range=%r",
+        media,
+        index,
+        filename,
+        stat_result.st_size,
+        request.headers.get("range"),
+    )
+    return DownloadFileResponse(
+        part.file,
+        filename=filename,
+        stat_result=stat_result,
+        headers=DOWNLOAD_HEADERS,
+    )
 
 
 @ui.page("/", title="PlexDLWeb")
