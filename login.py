@@ -96,6 +96,7 @@ async def page_login():
             }
 
             let plex_oauth_window = null;
+            let polling = null;
 
             function closePlexOAuthWindow() {
                 if (plex_oauth_window) {
@@ -195,8 +196,10 @@ async def page_login():
 
                     plex_oauth_window.location = 'https://app.plex.tv/auth/#!?' + encodeData(oauth_params);
                     polling = pin;
+                    let remainingPolls = 120;
 
                     (function poll() {
+                        remainingPolls--;
                         $.ajax({
                             url: 'https://plex.tv/api/v2/pins/' + pin,
                             type: 'GET',
@@ -204,26 +207,25 @@ async def page_login():
                             success: function (data) {
                                 const authToken = plexResponseValue(data, 'authToken') || plexResponseValue(data, 'auth_token');
                                 if (authToken){
+                                    polling = null;
                                     closePlexOAuthWindow();
                                     if (typeof success === "function") {
                                         success(authToken)
                                     }
                                 }
                             },
-                            error: function (jqXHR, textStatus, errorThrown) {
-                                if (textStatus !== "timeout") {
+                            complete: function () {
+                                if (remainingPolls <= 0) {
+                                    polling = null;
                                     closePlexOAuthWindow();
                                     if (typeof error === "function") {
-                                        error()
+                                        error(new Error('Plex authentication timed out. Please try again.'))
                                     }
-                                }
-                            },
-                            complete: function () {
-                                if (!plex_oauth_window.closed && polling === pin){
+                                } else if (polling === pin) {
                                     setTimeout(function() {poll()}, 1000);
                                 }
                             },
-                            timeout: 10000
+                            timeout: 1000
                         });
                     })();
                 }, function () {
@@ -238,8 +240,8 @@ async def page_login():
                 return new Promise((resolve, reject) => {
                     PlexOAuth(function (token) {
                         resolve(token);
-                    }, function () {
-                        reject();
+                    }, function (authError) {
+                        reject(authError || new Error('Unable to communicate with Plex.tv'));
                     });
                 });
             }
