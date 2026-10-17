@@ -117,7 +117,7 @@ async def page_login():
                 var newWindow = window.open(url, title, 'scrollbars=yes, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
 
                 // Puts focus on the newWindow
-                if (window.focus) {
+                if (newWindow && window.focus) {
                     newWindow.focus();
                 }
 
@@ -171,10 +171,23 @@ async def page_login():
                 }).join("&");
             }
 
-            function PlexOAuth(success, error) {
+            function openPlexOAuthWindow() {
                 closePlexOAuthWindow();
                 plex_oauth_window = PopupCenter('', 'Plex-OAuth', 600, 700);
-                $(plex_oauth_window.document.body).html(plex_oauth_loader);
+                if (!plex_oauth_window) {
+                    return false;
+                }
+                plex_oauth_window.document.body.innerHTML = plex_oauth_loader;
+                return true;
+            }
+
+            function PlexOAuth(success, error) {
+                if (!plex_oauth_window || plex_oauth_window.closed) {
+                    if (typeof error === "function") {
+                        error(new Error('The Plex login popup was blocked. Please allow popups and try again.'));
+                    }
+                    return;
+                }
 
                 getPlexOAuthPin().then(function (data) {
                     const pin = data.pin;
@@ -269,4 +282,9 @@ async def page_login():
         ui.navigate.to("/")
 
     with ui.column():
-        login_btn = ui.button(_("login_with_plex"), on_click=connect_plex)
+        login_btn = ui.button(_("login_with_plex"))
+        login_btn.on(
+            "click",
+            connect_plex,
+            js_handler="() => { openPlexOAuthWindow(); emit(); }",
+        )
